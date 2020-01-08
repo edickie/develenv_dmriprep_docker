@@ -1,25 +1,21 @@
-FROM poldracklab/fmriprep:1.3.2
+FROM dmriprep:latest
 
-RUN conda install jupyterlab \
-    nose
+ENV GITHUBUSER edickie
 
-RUN mkdir /opt/msm && \
-    curl -sSL https://github.com/ecr05/MSM_HOCR_macOSX/releases/download/1.0/msm_ubuntu > /opt/msm/msm && \
-    chmod 777 /opt/msm/msm
+RUN conda install jupyterlab
 
-ENV PATH=/opt/msm:$PATH
+RUN mkdir -p ~/.jupyter && \
+    echo c.NotebookApp.ip = \"0.0.0.0\" > ~/.jupyter/jupyter_notebook_config.py \
+    echo c.NotebookApp.allow_root" >> ~/.jupyter/jupyter_notebook_config.py
 
-RUN apt-get update && apt-get install -y connectome-workbench=1.3.2-2~nd16.04+1
-
-RUN mkdir /home/code && \
-    git clone https://github.com/edickie/ciftify.git /home/code/ciftify
-
-ENV PATH=/home/code/ciftify/ciftify/bin:${PATH} \
-    PYTHONPATH=/home/code/ciftify:${PYTHONPATH} \
-    CIFTIFY_TEMPLATES=/home/code/ciftify/ciftify/data
+RUN mkdir /home/${GITHUBUSER} && \
+    git clone https://github.com/${GITHUBUSER}/dmriprep.git /home/${GITHUBUSER}/dmriprep; \
+    cd /home/${GITHUBUSER}/dmriprep; \
+    git remote add upstream https://github.com/nipreps/dmriprep.git; \
+    git fetch upstream; \
+    git checkout master; \
+    git merge upstream/master
 
 WORKDIR /tmp/
-
-RUN mkdir -p ~/.jupyter && echo c.NotebookApp.ip = \"0.0.0.0\" > ~/.jupyter/jupyter_notebook_config.py
 
 ENTRYPOINT ["/bin/bash"]
